@@ -60,18 +60,7 @@ jobs:
           name: MedicalScheduler-release
           path: TempProject/android/app/build/outputs/apk/release/app-release.apk
 
-      # 8. Create GitHub Release
-      - name: Create GitHub Release
-        id: create_release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: android-release-${{ github.run_number }}
-          name: MedicalScheduler APK Release ${{ github.run_number }}
-          body: "Release of Medical Class Scheduler APK."
-          draft: false
-          prerelease: false
-
-      # 9. Upload APK to Release
+      # 8. Upload APK to Release
       - name: Upload APK to Release
         uses: actions/upload-release-asset@v1
         with:
