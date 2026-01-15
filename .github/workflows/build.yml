@@ -1,146 +1,85 @@
-name: Android Build and Release
+name: Build MedicalScheduler APK
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
 
     steps:
-      # ---------------------------
-      # Checkout repository
-      # ---------------------------
-      - name: 📥 Checkout repository
+      # 1. Checkout your repo
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      # ---------------------------
-      # Setup JDK for Android
-      # ---------------------------
-      - name: ☕ Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-          cache: gradle
-
-      # ---------------------------
-      # Setup Node.js
-      # ---------------------------
-      - name: 📦 Set up Node.js
+      # 2. Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: 20
 
-      # ---------------------------
-      # Initialize RN Project
-      # ---------------------------
-      - name: 🚀 Initialize React Native Project
-        run: |
-          npx @react-native-community/cli init MedicalScheduler --version 0.72.6 --pm npm
-          echo "✅ RN project initialized"
+      # 3. Setup Java
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
 
-      # ---------------------------
-      # Copy custom files
-      # ---------------------------
-      - name: 📄 Copy App.js and AndroidManifest.xml
-        run: |
-          cp App.js MedicalScheduler/App.js
-          cp android/app/src/main/AndroidManifest.xml MedicalScheduler/android/app/src/main/AndroidManifest.xml
-          echo "✅ Custom App.js and AndroidManifest.xml copied"
+      # 4. Install Android SDK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          api-level: 33
+          build-tools: '33.0.2'
 
-      # ---------------------------
-      # Install dependencies & generate lockfile
-      # ---------------------------
-      - name: 📚 Install dependencies & generate package-lock.json
+      # 5. Install React Native CLI
+      - name: Install React Native CLI
+        run: npm install -g react-native-cli
+
+      # 6. Create temporary React Native project
+      - name: Create temp RN project
         run: |
-          cd MedicalScheduler
+          npx react-native init TempProject --version 0.72.6
+          cd TempProject
+          # Replace App.js
+          cp ../App.js ./App.js
+          # Copy package.json dependencies
+          cp ../package.json ./package.json
           npm install
-          echo "✅ package-lock.json generated"
 
-      # ---------------------------
-      # Grant gradlew permission
-      # ---------------------------
-      - name: 🔨 Grant execute permission for gradlew
+      # 7. Build release APK
+      - name: Build release APK
+        working-directory: TempProject/android
         run: |
-          cd MedicalScheduler/android
-          chmod +x gradlew
-          echo "✅ gradlew permission set"
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
 
-      # ---------------------------
-      # Build APK
-      # ---------------------------
-      - name: 🏗️ Build APK
-        run: |
-          cd MedicalScheduler/android
-          ./gradlew assembleRelease --no-daemon --stacktrace
-
-      # ---------------------------
-      # Get build info
-      # ---------------------------
-      - name: 📝 Get build metadata
-        id: build-info
-        run: |
-          cd MedicalScheduler
-          echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-          echo "COMMIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "BUILD_DATE=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
-          echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-
-      # ---------------------------
-      # Rename APK
-      # ---------------------------
-      - name: 📦 Rename APK
-        run: |
-          cd MedicalScheduler/android/app/build/outputs/apk/release
-          if [ -f app-release-unsigned.apk ]; then
-            mv app-release-unsigned.apk medical-scheduler-v${{ steps.build-info.outputs.VERSION }}-${{ steps.build-info.outputs.COMMIT_SHORT }}.apk
-          else
-            mv app-release.apk medical-scheduler-v${{ steps.build-info.outputs.VERSION }}-${{ steps.build-info.outputs.COMMIT_SHORT }}.apk
-          fi
-
-      # ---------------------------
-      # Upload APK Artifacts
-      # ---------------------------
-      - name: 📤 Upload APK (Latest)
-        uses: actions/upload-artifact@v4
+      # 8. Upload APK artifact
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: MedicalScheduler-Latest
-          path: MedicalScheduler/android/app/build/outputs/apk/release/*.apk
-          retention-days: 30
+          name: MedicalScheduler-release
+          path: TempProject/android/app/build/outputs/apk/release/app-release.apk
 
-      - name: 📤 Upload APK (Versioned)
-        uses: actions/upload-artifact@v4
+      # 9. Create GitHub Release
+      - name: Create GitHub Release
+        id: create_release
+        uses: ncipollo/release-action@v1
         with:
-          name: MedicalScheduler-v${{ steps.build-info.outputs.VERSION }}-${{ steps.build-info.outputs.BUILD_DATE }}
-          path: MedicalScheduler/android/app/build/outputs/apk/release/*.apk
-          retention-days: 90
+          tag: android-release-${{ github.run_number }}
+          name: MedicalScheduler APK Release ${{ github.run_number }}
+          body: "Release of Medical Class Scheduler APK."
+          draft: false
+          prerelease: false
 
-      # ---------------------------
-      # Build Summary
-      # ---------------------------
-      - name: 📊 Build Summary
-        run: |
-          echo "## ✅ Build Successful!" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version:** ${{ steps.build-info.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit:** ${{ steps.build-info.outputs.COMMIT_SHORT }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch:** ${{ steps.build-info.outputs.BRANCH }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Lock File:** Generated on this run" >> $GITHUB_STEP_SUMMARY
-
-  notify:
-    needs: build
-    runs-on: ubuntu-latest
-    if: success()
-
-    steps:
-      - name: 📢 Build Success Notification
-        run: |
-          echo "================================================"
-          echo "✅ BUILD SUCCESSFUL!"
-          echo "📱 App: Medical Class Scheduler"
-          echo "🔗 Link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          echo "================================================"
+      # 10. Upload APK to Release
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: TempProject/android/app/build/outputs/apk/release/app-release.apk
+          asset_name: MedicalClassScheduler.apk
+          asset_content_type: application/vnd.android.package-archive
