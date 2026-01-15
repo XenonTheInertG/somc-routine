@@ -13,13 +13,13 @@ jobs:
 
     steps:
       # ---------------------------
-      # Checkout repository
+      # 1️⃣ Checkout repository
       # ---------------------------
       - name: 📥 Checkout repository
         uses: actions/checkout@v3
 
       # ---------------------------
-      # Set up Node.js
+      # 2️⃣ Set up Node.js
       # ---------------------------
       - name: 📦 Set up Node.js
         uses: actions/setup-node@v3
@@ -27,7 +27,7 @@ jobs:
           node-version: '18'
 
       # ---------------------------
-      # Set up Java (JDK 11)
+      # 3️⃣ Set up Java (JDK 11)
       # ---------------------------
       - name: ☕ Set up JDK 11
         uses: actions/setup-java@v3
@@ -37,32 +37,39 @@ jobs:
           cache: gradle
 
       # ---------------------------
-      # Install React Native CLI
+      # 4️⃣ Install React Native CLI
       # ---------------------------
       - name: 🛠️ Install React Native CLI
         run: npm install -g react-native-cli
 
       # ---------------------------
-      # Initialize RN Project
+      # 5️⃣ Initialize RN Project & copy files
       # ---------------------------
-      - name: 🚀 Initialize RN Project
+      - name: 🚀 Initialize RN Project & copy App.js + AndroidManifest.xml
         run: |
+          # Initialize RN project
           npx react-native init MedicalScheduler --version 0.72.6 --npm
+
+          # Copy your App.js
           cp App.js MedicalScheduler/App.js
-          # Copy custom AndroidManifest.xml
+
+          # Copy custom AndroidManifest.xml if you have one
           cp android/app/src/main/AndroidManifest.xml MedicalScheduler/android/app/src/main/AndroidManifest.xml
+
+          # Install dependencies inside RN project (generates package-lock.json)
           cd MedicalScheduler
           npm install
-          echo "✅ RN project initialized, App.js copied, deps installed"
+
+          echo "✅ RN project initialized, App.js & AndroidManifest.xml copied, deps installed"
 
       # ---------------------------
-      # Grant Gradle execute permission
+      # 6️⃣ Grant execute permission for gradlew
       # ---------------------------
-      - name: 🔨 Grant execute permission for gradlew
+      - name: 🔨 Grant gradlew execute permission
         run: chmod +x MedicalScheduler/android/gradlew
 
       # ---------------------------
-      # Build APK
+      # 7️⃣ Build APK
       # ---------------------------
       - name: 🏗️ Build APK
         run: |
@@ -70,7 +77,7 @@ jobs:
           ./gradlew assembleRelease --no-daemon --stacktrace
 
       # ---------------------------
-      # Get build info
+      # 8️⃣ Get build info
       # ---------------------------
       - name: 📝 Get build info
         id: build-info
@@ -82,7 +89,7 @@ jobs:
           echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
 
       # ---------------------------
-      # Rename APK
+      # 9️⃣ Rename APK
       # ---------------------------
       - name: 📦 Rename APK
         run: |
@@ -94,7 +101,7 @@ jobs:
           fi
 
       # ---------------------------
-      # Upload APK (Latest)
+      # 🔟 Upload APK (Latest)
       # ---------------------------
       - name: 📤 Upload APK (Latest)
         uses: actions/upload-artifact@v4
@@ -104,7 +111,7 @@ jobs:
           retention-days: 30
 
       # ---------------------------
-      # Upload APK (Versioned)
+      # 1️⃣1️⃣ Upload APK (Versioned)
       # ---------------------------
       - name: 📤 Upload APK (Versioned)
         uses: actions/upload-artifact@v4
@@ -114,7 +121,7 @@ jobs:
           retention-days: 90
 
       # ---------------------------
-      # Build Summary
+      # 1️⃣2️⃣ Build Summary
       # ---------------------------
       - name: 📊 Build Summary
         run: |
