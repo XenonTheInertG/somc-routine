@@ -54,14 +54,14 @@ jobs:
           || mv app-release.apk medical-scheduler-v${{ steps.build-info.outputs.VERSION }}-${{ steps.build-info.outputs.COMMIT_SHORT }}.apk
 
       - name: 📤 Upload APK (Latest Build)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: MedicalScheduler-Latest
           path: android/app/build/outputs/apk/release/*.apk
           retention-days: 30
 
       - name: 📤 Upload APK (Versioned)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: MedicalScheduler-v${{ steps.build-info.outputs.VERSION }}-${{ steps.build-info.outputs.BUILD_DATE }}
           path: android/app/build/outputs/apk/release/*.apk
