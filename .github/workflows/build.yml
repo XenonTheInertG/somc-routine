@@ -36,11 +36,11 @@ jobs:
           distribution: 'temurin'
 
       # ---------------------------
-      # 4️⃣ Initialize React Native Project
+      # 4️⃣ Initialize React Native Project (modern CLI)
       # ---------------------------
       - name: 🚀 Initialize RN Project
         run: |
-          npx react-native init MedicalScheduler --version 0.72.6 --npm
+          npx @react-native-community/cli init MedicalScheduler --version 0.72.6 --npm
           # Copy App.js
           cp App.js MedicalScheduler/App.js
           # Copy AndroidManifest.xml
