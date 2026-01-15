@@ -12,7 +12,7 @@ jobs:
 
     steps:
       # 1. Checkout your repo
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       # 2. Setup Node.js
@@ -28,19 +28,19 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      # 4. Install Android SDK
+      # 4. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
         with:
           api-level: 33
           build-tools: '33.0.2'
 
-      # 5. Create temporary React Native project using npx (fixed)
+      # 5. Create temporary React Native project using new CLI
       - name: Create temp RN project
         run: |
-          npx react-native init TempProject --version 0.72.6
+          npx @react-native-community/cli init TempProject --version 0.72.6
           cd TempProject
-          # Replace App.js with your repo's App.js
+          # Replace default App.js with your repo's App.js
           cp ../App.js ./App.js
           # Copy package.json to get dependencies
           cp ../package.json ./package.json
