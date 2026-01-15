@@ -35,36 +35,32 @@ jobs:
           api-level: 33
           build-tools: '33.0.2'
 
-      # 5. Install React Native CLI
-      - name: Install React Native CLI
-        run: npm install -g react-native-cli
-
-      # 6. Create temporary React Native project
+      # 5. Create temporary React Native project using npx (fixed)
       - name: Create temp RN project
         run: |
           npx react-native init TempProject --version 0.72.6
           cd TempProject
-          # Replace App.js
+          # Replace App.js with your repo's App.js
           cp ../App.js ./App.js
-          # Copy package.json dependencies
+          # Copy package.json to get dependencies
           cp ../package.json ./package.json
           npm install
 
-      # 7. Build release APK
+      # 6. Build release APK
       - name: Build release APK
         working-directory: TempProject/android
         run: |
           chmod +x ./gradlew
           ./gradlew assembleRelease
 
-      # 8. Upload APK artifact
+      # 7. Upload APK artifact
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: MedicalScheduler-release
           path: TempProject/android/app/build/outputs/apk/release/app-release.apk
 
-      # 9. Create GitHub Release
+      # 8. Create GitHub Release
       - name: Create GitHub Release
         id: create_release
         uses: ncipollo/release-action@v1
@@ -75,7 +71,7 @@ jobs:
           draft: false
           prerelease: false
 
-      # 10. Upload APK to Release
+      # 9. Upload APK to Release
       - name: Upload APK to Release
         uses: actions/upload-release-asset@v1
         with:
