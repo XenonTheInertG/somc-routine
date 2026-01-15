@@ -45,25 +45,17 @@ jobs:
       # ---------------------------
       # 5️⃣ Initialize RN Project & copy files
       # ---------------------------
-      - name: 🚀 Initialize RN Project & copy App.js + AndroidManifest.xml
+      - name: 🚀 Initialize RN Project
         run: |
-          # Initialize RN project
           npx react-native init MedicalScheduler --version 0.72.6 --npm
-
-          # Copy your App.js
           cp App.js MedicalScheduler/App.js
-
-          # Copy custom AndroidManifest.xml if you have one
           cp android/app/src/main/AndroidManifest.xml MedicalScheduler/android/app/src/main/AndroidManifest.xml
-
-          # Install dependencies inside RN project (generates package-lock.json)
           cd MedicalScheduler
           npm install
-
           echo "✅ RN project initialized, App.js & AndroidManifest.xml copied, deps installed"
 
       # ---------------------------
-      # 6️⃣ Grant execute permission for gradlew
+      # 6️⃣ Grant gradlew execute permission
       # ---------------------------
       - name: 🔨 Grant gradlew execute permission
         run: chmod +x MedicalScheduler/android/gradlew
