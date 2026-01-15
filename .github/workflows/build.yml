@@ -13,13 +13,21 @@ jobs:
 
     steps:
       # ---------------------------
-      # Checkout
+      # Checkout repository
       # ---------------------------
       - name: 📥 Checkout repository
         uses: actions/checkout@v3
 
       # ---------------------------
-      # Java (for Android)
+      # Set up Node.js
+      # ---------------------------
+      - name: 📦 Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # ---------------------------
+      # Set up Java (JDK 11)
       # ---------------------------
       - name: ☕ Set up JDK 11
         uses: actions/setup-java@v3
@@ -29,41 +37,45 @@ jobs:
           cache: gradle
 
       # ---------------------------
-      # Node (NO npm cache)
+      # Install React Native CLI
       # ---------------------------
-      - name: 📦 Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+      - name: 🛠️ Install React Native CLI
+        run: npm install -g react-native-cli
 
       # ---------------------------
-      # Generate lock file EVERY TIME
+      # Initialize RN Project
       # ---------------------------
-      - name: 📚 Generate package-lock.json & install deps
+      - name: 🚀 Initialize RN Project
         run: |
+          npx react-native init MedicalScheduler --version 0.72.6 --npm
+          cp App.js MedicalScheduler/App.js
+          # Copy custom AndroidManifest.xml
+          cp android/app/src/main/AndroidManifest.xml MedicalScheduler/android/app/src/main/AndroidManifest.xml
+          cd MedicalScheduler
           npm install
-          echo "✅ package-lock.json generated"
+          echo "✅ RN project initialized, App.js copied, deps installed"
 
       # ---------------------------
-      # Android permissions
+      # Grant Gradle execute permission
       # ---------------------------
       - name: 🔨 Grant execute permission for gradlew
-        run: chmod +x android/gradlew
+        run: chmod +x MedicalScheduler/android/gradlew
 
       # ---------------------------
       # Build APK
       # ---------------------------
       - name: 🏗️ Build APK
         run: |
-          cd android
+          cd MedicalScheduler/android
           ./gradlew assembleRelease --no-daemon --stacktrace
 
       # ---------------------------
-      # Build metadata
+      # Get build info
       # ---------------------------
       - name: 📝 Get build info
         id: build-info
         run: |
+          cd MedicalScheduler
           echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
           echo "COMMIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "BUILD_DATE=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
@@ -74,7 +86,7 @@ jobs:
       # ---------------------------
       - name: 📦 Rename APK
         run: |
-          cd android/app/build/outputs/apk/release
+          cd MedicalScheduler/android/app/build/outputs/apk/release
           if [ -f app-release-unsigned.apk ]; then
             mv app-release-unsigned.apk medical-scheduler-v${{ steps.build-info.outputs.VERSION }}-${{ steps.build-info.outputs.COMMIT_SHORT }}.apk
           else
@@ -82,24 +94,27 @@ jobs:
           fi
 
       # ---------------------------
-      # Upload artifacts
+      # Upload APK (Latest)
       # ---------------------------
       - name: 📤 Upload APK (Latest)
         uses: actions/upload-artifact@v4
         with:
           name: MedicalScheduler-Latest
-          path: android/app/build/outputs/apk/release/*.apk
+          path: MedicalScheduler/android/app/build/outputs/apk/release/*.apk
           retention-days: 30
 
+      # ---------------------------
+      # Upload APK (Versioned)
+      # ---------------------------
       - name: 📤 Upload APK (Versioned)
         uses: actions/upload-artifact@v4
         with:
           name: MedicalScheduler-v${{ steps.build-info.outputs.VERSION }}-${{ steps.build-info.outputs.BUILD_DATE }}
-          path: android/app/build/outputs/apk/release/*.apk
+          path: MedicalScheduler/android/app/build/outputs/apk/release/*.apk
           retention-days: 90
 
       # ---------------------------
-      # Summary
+      # Build Summary
       # ---------------------------
       - name: 📊 Build Summary
         run: |
