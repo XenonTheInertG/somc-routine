@@ -36,13 +36,7 @@ jobs:
           distribution: 'temurin'
 
       # ---------------------------
-      # 4️⃣ Install React Native CLI
-      # ---------------------------
-      - name: 🛠️ Install React Native CLI
-        run: npm install -g react-native-cli
-
-      # ---------------------------
-      # 5️⃣ Initialize RN Project
+      # 4️⃣ Initialize React Native Project
       # ---------------------------
       - name: 🚀 Initialize RN Project
         run: |
@@ -51,19 +45,19 @@ jobs:
           cp App.js MedicalScheduler/App.js
           # Copy AndroidManifest.xml
           cp android/app/src/main/AndroidManifest.xml MedicalScheduler/android/app/src/main/AndroidManifest.xml
-          # Install dependencies
+          # Install dependencies and generate lock file
           cd MedicalScheduler
           npm install
           echo "✅ RN project initialized, App.js & AndroidManifest.xml copied, deps installed"
 
       # ---------------------------
-      # 6️⃣ Grant gradlew permission
+      # 5️⃣ Grant gradlew execute permission
       # ---------------------------
       - name: 🔨 Grant gradlew execute permission
         run: chmod +x MedicalScheduler/android/gradlew
 
       # ---------------------------
-      # 7️⃣ Build APK
+      # 6️⃣ Build APK
       # ---------------------------
       - name: 🏗️ Build APK
         run: |
@@ -71,7 +65,7 @@ jobs:
           ./gradlew assembleRelease --no-daemon --stacktrace
 
       # ---------------------------
-      # 8️⃣ Get build info
+      # 7️⃣ Get build info
       # ---------------------------
       - name: 📝 Get build info
         id: build-info
@@ -83,7 +77,7 @@ jobs:
           echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
 
       # ---------------------------
-      # 9️⃣ Rename APK
+      # 8️⃣ Rename APK
       # ---------------------------
       - name: 📦 Rename APK
         run: |
@@ -95,7 +89,7 @@ jobs:
           fi
 
       # ---------------------------
-      # 🔟 Upload APK (Latest)
+      # 9️⃣ Upload APK (Latest)
       # ---------------------------
       - name: 📤 Upload APK (Latest)
         uses: actions/upload-artifact@v4
@@ -105,7 +99,7 @@ jobs:
           retention-days: 30
 
       # ---------------------------
-      # 1️⃣1️⃣ Upload APK (Versioned)
+      # 🔟 Upload APK (Versioned)
       # ---------------------------
       - name: 📤 Upload APK (Versioned)
         uses: actions/upload-artifact@v4
@@ -115,7 +109,7 @@ jobs:
           retention-days: 90
 
       # ---------------------------
-      # 1️⃣2️⃣ Build Summary
+      # 1️⃣1️⃣ Build Summary
       # ---------------------------
       - name: 📊 Build Summary
         run: |
