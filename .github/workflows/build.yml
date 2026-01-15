@@ -34,7 +34,6 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-          cache: gradle
 
       # ---------------------------
       # 4️⃣ Install React Native CLI
@@ -43,19 +42,22 @@ jobs:
         run: npm install -g react-native-cli
 
       # ---------------------------
-      # 5️⃣ Initialize RN Project & copy files
+      # 5️⃣ Initialize RN Project
       # ---------------------------
       - name: 🚀 Initialize RN Project
         run: |
           npx react-native init MedicalScheduler --version 0.72.6 --npm
+          # Copy App.js
           cp App.js MedicalScheduler/App.js
+          # Copy AndroidManifest.xml
           cp android/app/src/main/AndroidManifest.xml MedicalScheduler/android/app/src/main/AndroidManifest.xml
+          # Install dependencies
           cd MedicalScheduler
           npm install
           echo "✅ RN project initialized, App.js & AndroidManifest.xml copied, deps installed"
 
       # ---------------------------
-      # 6️⃣ Grant gradlew execute permission
+      # 6️⃣ Grant gradlew permission
       # ---------------------------
       - name: 🔨 Grant gradlew execute permission
         run: chmod +x MedicalScheduler/android/gradlew
