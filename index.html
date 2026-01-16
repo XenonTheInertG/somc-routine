@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medical Class Schedule</title>
+    <title>SOMC 63 Class Routine</title>
     <style>
         * {
             margin: 0;
@@ -25,6 +25,16 @@
         padding: 20px;
         text-align: center;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header-logo {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 10px;
+        display: block;
+        border-radius: 50%;
+        background: white;
+        padding: 5px;
     }
 
     .header h1 {
@@ -223,13 +233,30 @@
         color: #991b1b;
         border-color: #fca5a5;
     }
+
+    .footer {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+        font-size: 14px;
+        background: white;
+        margin: 15px;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .footer-credit {
+        color: #667eea;
+        font-weight: 600;
+    }
 </style>
 ```
 
 </head>
 <body>
     <div class="header">
-        <h1>📚 Medical Class Schedule</h1>
+        <img src="https://raw.githubusercontent.com/XenonTheInertG/somc-routine/799309361a6d8e3b078213d0435abf25b63aae0e/IMG_1682.png" alt="SOMC Logo" class="header-logo">
+        <h1>📚 SOMC 63 Class Routine</h1>
         <p>Stay updated with your class timings</p>
     </div>
 
@@ -264,6 +291,10 @@
         <div class="card-title">📅 Schedule</div>
         <div class="day-selector" id="daySelector"></div>
         <div id="classList"></div>
+    </div>
+
+    <div class="footer">
+        Webapp by <span class="footer-credit">Mahin, SOMC'63</span>
     </div>
 </div>
 
