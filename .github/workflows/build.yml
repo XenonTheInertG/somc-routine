@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 🔑 Fix npm cache issue
+      # Fix npm cache issue
       - name: Generate package-lock.json if missing
         run: |
           if [ ! -f package-lock.json ]; then
@@ -38,7 +38,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # ✅ OPTION 2: Pin Gradle 8.3 (React Native safe)
+      # Option 2: Pin Gradle 8.3 manually
       - name: Download Gradle 8.3
         run: |
           mkdir -p /tmp/gradle
@@ -65,12 +65,12 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android
-          gradle assembleDebug --stacktrace --no-daemon
+          gradle assembleDebug --stacktrace --no-daemon --warning-mode=all
 
       - name: Build Release APK (unsigned)
         run: |
           cd android
-          gradle assembleRelease --stacktrace --no-daemon
+          gradle assembleRelease --stacktrace --no-daemon --warning-mode=all
 
       - name: List generated APKs
         run: |
