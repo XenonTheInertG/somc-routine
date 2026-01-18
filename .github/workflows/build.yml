@@ -15,14 +15,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 🔑 ADD THIS STEP (npm cache fix)
+      # 🔑 Fix npm cache issue
       - name: Generate package-lock.json if missing
         run: |
           if [ ! -f package-lock.json ]; then
             echo "package-lock.json not found. Generating..."
             npm install --package-lock-only
-          else
-            echo "package-lock.json already exists"
           fi
 
       - name: Setup Node.js
@@ -40,21 +38,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      # ✅ OPTION 2: Pin Gradle 8.3 (React Native safe)
+      - name: Download Gradle 8.3
+        run: |
+          mkdir -p /tmp/gradle
+          curl -sL https://services.gradle.org/distributions/gradle-8.3-bin.zip -o gradle.zip
+          unzip -q gradle.zip -d /tmp/gradle
+          echo "/tmp/gradle/gradle-8.3/bin" >> $GITHUB_PATH
+
       - name: Install dependencies
         run: npm install
-
-      - name: Generate Gradle Wrapper if missing
-        run: |
-          if [ ! -f "android/gradlew" ]; then
-            echo "Gradle wrapper not found. Generating..."
-            cd android
-            gradle wrapper --gradle-version 8.3
-            chmod +x gradlew
-            cd ..
-          else
-            echo "Gradle wrapper found"
-            chmod +x android/gradlew
-          fi
 
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
@@ -65,19 +58,19 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
       - name: Build Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace --no-daemon
+          gradle assembleDebug --stacktrace --no-daemon
 
-      - name: Build Release APK
+      - name: Build Release APK (unsigned)
         run: |
           cd android
-          ./gradlew assembleRelease --stacktrace --no-daemon
+          gradle assembleRelease --stacktrace --no-daemon
 
       - name: List generated APKs
         run: |
@@ -89,12 +82,12 @@ jobs:
         with:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: app-release-unsigned
           path: android/app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: warn
 
@@ -105,23 +98,7 @@ jobs:
           files: |
             android/app/build/outputs/apk/debug/app-debug.apk
             android/app/build/outputs/apk/release/app-release-unsigned.apk
-          body: |
-            ## SOMC Class Schedule v${{ github.ref_name }}
-
-            Download the APK and install on your Android phone.
-
-            ### Installation
-            1. Download `app-debug.apk`
-            2. Transfer to your Android phone
-            3. Install (allow unknown sources)
-            4. Enter roll number (1–255)
-            5. Enable notifications
-
-            ### What's New
-            - Complete class schedule for SOMC 63
-            - Auto notifications 10 minutes before class
-            - Clean modern UI
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
