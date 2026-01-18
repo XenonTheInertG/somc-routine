@@ -38,13 +38,21 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # Option 2: Pin Gradle 8.3 manually
+      # Pin Gradle 8.3 manually (RN-compatible)
       - name: Download Gradle 8.3
         run: |
           mkdir -p /tmp/gradle
           curl -sL https://services.gradle.org/distributions/gradle-8.3-bin.zip -o gradle.zip
           unzip -q gradle.zip -d /tmp/gradle
           echo "/tmp/gradle/gradle-8.3/bin" >> $GITHUB_PATH
+
+      # Generate Debug Keystore for CI
+      - name: Generate debug keystore
+        run: |
+          mkdir -p android/app
+          keytool -genkey -v -keystore android/app/debug.keystore -storepass android \
+            -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Install dependencies
         run: npm install
